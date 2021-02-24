@@ -165,7 +165,7 @@ class MicroRTSVecEnv:
 
 class MicroRTSGridModeVecEnv(MicroRTSVecEnv):
 
-    def __init__(self, num_selfplay_envs, num_bot_envs, **kwargs):
+    def __init__(self, num_selfplay_envs=0, num_bot_envs=1, **kwargs):
         self.num_selfplay_envs = num_selfplay_envs
         self.num_bot_envs = num_bot_envs
         kwargs['num_envs'] = num_bot_envs
