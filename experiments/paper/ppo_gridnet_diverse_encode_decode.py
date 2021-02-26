@@ -90,7 +90,7 @@ if __name__ == "__main__":
         args.seed = int(time.time())
 args.num_envs = args.num_selfplay_envs + args.num_bot_envs
 args.batch_size = int(args.num_envs * args.num_steps)
-args.minibatch_size = int(args.batch_size // args.nppo_gridnet_diverse_impala.py_minibatch)
+args.minibatch_size = int(args.batch_size // args.n_minibatch)
 
 class VecMonitor(VecEnvWrapper):
     def __init__(self, venv):
