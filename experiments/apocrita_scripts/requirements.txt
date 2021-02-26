@@ -5,3 +5,4 @@ Pillow
 stable-baselines3
 torch
 wandb
+tensorboard
