@@ -21,5 +21,7 @@ conda activate microrts
 pip install -r requirements.txt
 cd ../../ && pip install -e .
 
+cd experiments/paper
 
-python ../paper/ppo_gridnet_diverse_impala_decoder.py  --num-bot-envs 24 --cuda True --wandb-project-name gridnet  --wandb-entity chrisbam4d --prod-mode --total-timesteps 1000000
+
+python ppo_gridnet_diverse_impala_decoder.py  --num-bot-envs 24 --cuda True --wandb-project-name gridnet  --wandb-entity chrisbam4d --prod-mode --total-timesteps 1000000
