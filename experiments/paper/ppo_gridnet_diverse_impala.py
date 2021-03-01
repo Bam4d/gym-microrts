@@ -359,6 +359,7 @@ if args.prod_mode and wandb.run.resumed:
     agent.eval()
     print(f"resumed at update {starting_update}")
 
+
 for update in range(starting_update, num_updates+1):
     # Annealing the rate if instructed to do so.
     if args.anneal_lr:
