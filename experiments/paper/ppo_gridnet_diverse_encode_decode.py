@@ -34,13 +34,13 @@ if __name__ == "__main__":
                         help='seed of the experiment')
     parser.add_argument('--total-timesteps', type=int, default=100000000,
                         help='total timesteps of the experiments')
-    parser.add_argument('--torch-deterministic', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
+    parser.add_argument('--torch-deterministic', type=lambda x: bool(strtobool(x)), default=True, nargs='?', const=True,
                         help='if toggled, `torch.backends.cudnn.deterministic=False`')
-    parser.add_argument('--cuda', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
+    parser.add_argument('--cuda', type=lambda x: bool(strtobool(x)), default=True, nargs='?', const=True,
                         help='if toggled, cuda will not be enabled by default')
-    parser.add_argument('--prod-mode', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
+    parser.add_argument('--prod-mode', type=lambda x: bool(strtobool(x)), default=False, nargs='?', const=True,
                         help='run the script in production mode and use wandb to log outputs')
-    parser.add_argument('--capture-video', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
+    parser.add_argument('--capture-video', type=lambda x: bool(strtobool(x)), default=False, nargs='?', const=True,
                         help='weather to capture videos of the agent performances (check out `videos` folder)')
     parser.add_argument('--wandb-project-name', type=str, default="cleanRL",
                         help="the wandb's project name")
@@ -69,21 +69,21 @@ if __name__ == "__main__":
     parser.add_argument('--clip-coef', type=float, default=0.1,
                         help="the surrogate clipping coefficient")
     parser.add_argument('--update-epochs', type=int, default=4,
-                         help="the K epochs to update the policy")
-    parser.add_argument('--kle-stop', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
-                         help='If toggled, the policy updates will be early stopped w.r.t target-kl')
-    parser.add_argument('--kle-rollback', type=lambda x:bool(strtobool(x)), default=False, nargs='?', const=True,
-                         help='If toggled, the policy updates will roll back to previous policy if KL exceeds target-kl')
+                        help="the K epochs to update the policy")
+    parser.add_argument('--kle-stop', type=lambda x: bool(strtobool(x)), default=False, nargs='?', const=True,
+                        help='If toggled, the policy updates will be early stopped w.r.t target-kl')
+    parser.add_argument('--kle-rollback', type=lambda x: bool(strtobool(x)), default=False, nargs='?', const=True,
+                        help='If toggled, the policy updates will roll back to previous policy if KL exceeds target-kl')
     parser.add_argument('--target-kl', type=float, default=0.03,
-                         help='the target-kl variable that is referred by --kl')
-    parser.add_argument('--gae', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
-                         help='Use GAE for advantage computation')
-    parser.add_argument('--norm-adv', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
-                          help="Toggles advantages normalization")
-    parser.add_argument('--anneal-lr', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
-                          help="Toggle learning rate annealing for policy and value networks")
-    parser.add_argument('--clip-vloss', type=lambda x:bool(strtobool(x)), default=True, nargs='?', const=True,
-                          help='Toggles wheter or not to use a clipped loss for the value function, as per the paper.')
+                        help='the target-kl variable that is referred by --kl')
+    parser.add_argument('--gae', type=lambda x: bool(strtobool(x)), default=True, nargs='?', const=True,
+                        help='Use GAE for advantage computation')
+    parser.add_argument('--norm-adv', type=lambda x: bool(strtobool(x)), default=True, nargs='?', const=True,
+                        help="Toggles advantages normalization")
+    parser.add_argument('--anneal-lr', type=lambda x: bool(strtobool(x)), default=True, nargs='?', const=True,
+                        help="Toggle learning rate annealing for policy and value networks")
+    parser.add_argument('--clip-vloss', type=lambda x: bool(strtobool(x)), default=True, nargs='?', const=True,
+                        help='Toggles wheter or not to use a clipped loss for the value function, as per the paper.')
 
     args = parser.parse_args()
     if not args.seed:
@@ -91,6 +91,7 @@ if __name__ == "__main__":
 args.num_envs = args.num_selfplay_envs + args.num_bot_envs
 args.batch_size = int(args.num_envs * args.num_steps)
 args.minibatch_size = int(args.batch_size // args.n_minibatch)
+
 
 class VecMonitor(VecEnvWrapper):
     def __init__(self, venv):
@@ -125,6 +126,7 @@ class VecMonitor(VecEnvWrapper):
                 newinfos[i] = info
         return obs, rews, dones, newinfos
 
+
 class MicroRTSStatsRecorder(VecEnvWrapper):
     def __init__(self, env, gamma):
         super().__init__(env)
@@ -138,7 +140,7 @@ class MicroRTSStatsRecorder(VecEnvWrapper):
     def step_wait(self):
         obs, rews, dones, infos = self.venv.step_wait()
         for i in range(len(dones)):
-            self.raw_rewards[i] += [infos[i]["raw_rewards"]] 
+            self.raw_rewards[i] += [infos[i]["raw_rewards"]]
         newinfos = list(infos[:])
         for i in range(len(dones)):
             if dones[i]:
@@ -150,14 +152,17 @@ class MicroRTSStatsRecorder(VecEnvWrapper):
                 newinfos[i] = info
         return obs, rews, dones, newinfos
 
+
 # TRY NOT TO MODIFY: setup the environment
 experiment_name = f"{args.gym_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
 writer = SummaryWriter(f"runs/{experiment_name}")
 writer.add_text('hyperparameters', "|param|value|\n|-|-|\n%s" % (
-        '\n'.join([f"|{key}|{value}|" for key, value in vars(args).items()])))
+    '\n'.join([f"|{key}|{value}|" for key, value in vars(args).items()])))
 if args.prod_mode:
     import wandb
-    run = wandb.init(project=args.wandb_project_name, entity=args.wandb_entity, sync_tensorboard=True, config=vars(args), name=experiment_name, monitor_gym=True, save_code=True)
+
+    run = wandb.init(project=args.wandb_project_name, entity=args.wandb_entity, sync_tensorboard=True,
+                     config=vars(args), name=experiment_name, monitor_gym=True, save_code=True)
     writer = SummaryWriter(f"/tmp/{experiment_name}")
 
 # TRY NOT TO MODIFY: seeding
@@ -171,10 +176,10 @@ envs = MicroRTSGridModeVecEnv(
     num_bot_envs=args.num_bot_envs,
     max_steps=2000,
     render_theme=2,
-    ai2s=[microrts_ai.coacAI for _ in range(args.num_bot_envs-6)] + \
-        [microrts_ai.randomBiasedAI for _ in range(2)] + \
-        [microrts_ai.lightRushAI for _ in range(2)] + \
-        [microrts_ai.workerRushAI for _ in range(2)],
+    ai2s=[microrts_ai.coacAI for _ in range(args.num_bot_envs - 6)] + \
+         [microrts_ai.randomBiasedAI for _ in range(2)] + \
+         [microrts_ai.lightRushAI for _ in range(2)] + \
+         [microrts_ai.workerRushAI for _ in range(2)],
     map_path="maps/16x16/basesWorkers16x16.xml",
     reward_weight=np.array([10.0, 1.0, 1.0, 0.2, 1.0, 4.0])
 )
@@ -190,6 +195,7 @@ if args.capture_video:
 #     )
 assert isinstance(envs.action_space, MultiDiscrete), "only MultiDiscrete action space is supported"
 
+
 # ALGO LOGIC: initialize agent here:
 class CategoricalMasked(Categorical):
     def __init__(self, probs=None, logits=None, validate_args=None, masks=[], sw=None):
@@ -200,13 +206,14 @@ class CategoricalMasked(Categorical):
             self.masks = masks.bool()
             logits = torch.where(self.masks, logits, torch.tensor(-1e+8, device=device))
             super(CategoricalMasked, self).__init__(probs, logits, validate_args)
-    
+
     def entropy(self):
         if len(self.masks) == 0:
             return super(CategoricalMasked, self).entropy()
         p_log_p = self.logits * self.probs
         p_log_p = torch.where(self.masks, p_log_p, torch.tensor(0.).to(device))
         return -p_log_p.sum(-1)
+
 
 class Scale(nn.Module):
     def __init__(self, scale):
@@ -216,6 +223,7 @@ class Scale(nn.Module):
     def forward(self, x):
         return x * self.scale
 
+
 class Transpose(nn.Module):
     def __init__(self, permutation):
         super().__init__()
@@ -224,98 +232,106 @@ class Transpose(nn.Module):
     def forward(self, x):
         return x.permute(self.permutation)
 
+
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     torch.nn.init.orthogonal_(layer.weight, std)
     torch.nn.init.constant_(layer.bias, bias_const)
     return layer
 
-class ResidualBlock(nn.Module):
-    def __init__(self, channels):
+
+class Encoder(nn.Module):
+    def __init__(self, input_channels):
         super().__init__()
-        self.conv0 = nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1)
-        self.conv1 = nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1)
+        self._encoder = nn.Sequential(
+            nn.Conv2d(input_channels, 32, kernel_size=3, padding=1),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.MaxPool2d(3, stride=2, padding=1),
+        )
 
     def forward(self, x):
-        inputs = x
-        x = nn.functional.relu(x)
-        x = self.conv0(x)
-        x = nn.functional.relu(x)
-        x = self.conv1(x)
-        return x + inputs
+        return self._encoder(x)
 
-class ConvSequence(nn.Module):
-    def __init__(self, input_shape, out_channels):
+class Decoder(nn.Module):
+    def __init__(self, output_channels):
         super().__init__()
-        self._input_shape = input_shape
-        self._out_channels = out_channels
-        self.conv = nn.Conv2d(in_channels=self._input_shape[0], out_channels=self._out_channels, kernel_size=3,
-                              padding=1)
-        self.res_block0 = ResidualBlock(self._out_channels)
-        self.res_block1 = ResidualBlock(self._out_channels)
+
+        self.deconv = nn.Sequential(
+            nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, output_channels, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+        )
 
     def forward(self, x):
-        x = self.conv(x)
-        x = nn.functional.max_pool2d(x, kernel_size=3, stride=2, padding=1)
-        x = self.res_block0(x)
-        x = self.res_block1(x)
-        assert x.shape[1:] == self.get_output_shape()
-        return x
+        return self.deconv(x)
 
-    def get_output_shape(self):
-        _c, h, w = self._input_shape
-        return (self._out_channels, (h + 1) // 2, (w + 1) // 2)
 
 class Agent(nn.Module):
-    def __init__(self, mapsize=16*16):
+    def __init__(self, mapsize=16 * 16):
         super(Agent, self).__init__()
         self.mapsize = mapsize
         h, w, c = envs.observation_space.shape
-        shape = (c, h, w)
-        conv_seqs = []
-        for out_channels in [16, 32, 32]:
-            conv_seq = ConvSequence(shape, out_channels)
-            shape = conv_seq.get_output_shape()
-            conv_seqs.append(conv_seq)
-        conv_seqs += [
+
+        self.encoder = Encoder(c)
+
+        self.actor = Decoder(78)
+
+        self.critic = nn.Sequential(
             nn.Flatten(),
+            layer_init(nn.Linear(256, 128), std=1),
             nn.ReLU(),
-            nn.Linear(in_features=shape[0] * shape[1] * shape[2], out_features=256),
+            layer_init(nn.Linear(128, 64), std=1),
             nn.ReLU(),
-        ]
-        self.network = nn.Sequential(*conv_seqs)
-        self.actor = layer_init(nn.Linear(256, self.mapsize*envs.action_space.nvec[1:].sum()), std=0.01)
-        self.critic = layer_init(nn.Linear(256, 1), std=1)
+            layer_init(nn.Linear(64, 1), std=1),
+        )
 
     def forward(self, x):
-        return self.network(x.permute((0, 3, 1, 2))) # "bhwc" -> "bchw"
+        return self.encoder(x.permute((0, 3, 1, 2)))  # "bhwc" -> "bchw"
 
     def get_action(self, x, action=None, invalid_action_masks=None, envs=None):
         logits = self.actor(self.forward(x))
         grid_logits = logits.view(-1, envs.action_space.nvec[1:].sum())
         split_logits = torch.split(grid_logits, envs.action_space.nvec[1:].tolist(), dim=1)
-        
+
         if action is None:
             invalid_action_masks = torch.tensor(np.array(envs.vec_client.getMasks(0))).to(device)
-            invalid_action_masks = invalid_action_masks.view(-1,invalid_action_masks.shape[-1])
-            split_invalid_action_masks = torch.split(invalid_action_masks[:,1:], envs.action_space.nvec[1:].tolist(), dim=1)
-            multi_categoricals = [CategoricalMasked(logits=logits, masks=iam) for (logits, iam) in zip(split_logits, split_invalid_action_masks)]
+            invalid_action_masks = invalid_action_masks.view(-1, invalid_action_masks.shape[-1])
+            split_invalid_action_masks = torch.split(invalid_action_masks[:, 1:], envs.action_space.nvec[1:].tolist(),
+                                                     dim=1)
+            multi_categoricals = [CategoricalMasked(logits=logits, masks=iam) for (logits, iam) in
+                                  zip(split_logits, split_invalid_action_masks)]
             action = torch.stack([categorical.sample() for categorical in multi_categoricals])
         else:
-            invalid_action_masks = invalid_action_masks.view(-1,invalid_action_masks.shape[-1])
-            action = action.view(-1,action.shape[-1]).T
-            split_invalid_action_masks = torch.split(invalid_action_masks[:,1:], envs.action_space.nvec[1:].tolist(), dim=1)
-            multi_categoricals = [CategoricalMasked(logits=logits, masks=iam) for (logits, iam) in zip(split_logits, split_invalid_action_masks)]
+            invalid_action_masks = invalid_action_masks.view(-1, invalid_action_masks.shape[-1])
+            action = action.view(-1, action.shape[-1]).T
+            split_invalid_action_masks = torch.split(invalid_action_masks[:, 1:], envs.action_space.nvec[1:].tolist(),
+                                                     dim=1)
+            multi_categoricals = [CategoricalMasked(logits=logits, masks=iam) for (logits, iam) in
+                                  zip(split_logits, split_invalid_action_masks)]
         logprob = torch.stack([categorical.log_prob(a) for a, categorical in zip(action, multi_categoricals)])
         entropy = torch.stack([categorical.entropy() for categorical in multi_categoricals])
         num_predicted_parameters = len(envs.action_space.nvec) - 1
         logprob = logprob.T.view(-1, 256, num_predicted_parameters)
         entropy = entropy.T.view(-1, 256, num_predicted_parameters)
         action = action.T.view(-1, 256, num_predicted_parameters)
-        invalid_action_masks = invalid_action_masks.view(-1, 256, envs.action_space.nvec[1:].sum()+1)
+        invalid_action_masks = invalid_action_masks.view(-1, 256, envs.action_space.nvec[1:].sum() + 1)
         return action, logprob.sum(1).sum(1), entropy.sum(1).sum(1), invalid_action_masks
 
     def get_value(self, x):
         return self.critic(self.forward(x))
+
 
 agent = Agent().to(device)
 optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
@@ -324,9 +340,9 @@ if args.anneal_lr:
     lr = lambda f: f * args.learning_rate
 
 # ALGO Logic: Storage for epoch data
-mapsize = 16*16
+mapsize = 16 * 16
 action_space_shape = (mapsize, envs.action_space.shape[0] - 1)
-invalid_action_shape = (mapsize, envs.action_space.nvec[1:].sum()+1)
+invalid_action_shape = (mapsize, envs.action_space.nvec[1:].sum() + 1)
 
 obs = torch.zeros((args.num_steps, args.num_envs) + envs.observation_space.shape).to(device)
 actions = torch.zeros((args.num_steps, args.num_envs) + action_space_shape).to(device)
@@ -347,6 +363,7 @@ num_updates = args.total_timesteps // args.batch_size
 ## CRASH AND RESUME LOGIC:
 starting_update = 1
 from jpype.types import JArray, JInt
+
 if args.prod_mode and wandb.run.resumed:
     print("previous run.summary", run.summary)
     starting_update = run.summary['charts/update'] + 1
@@ -359,7 +376,7 @@ if args.prod_mode and wandb.run.resumed:
     agent.eval()
     print(f"resumed at update {starting_update}")
 
-for update in range(starting_update, num_updates+1):
+for update in range(starting_update, num_updates + 1):
     # Annealing the rate if instructed to do so.
     if args.anneal_lr:
         frac = 1.0 - (update - 1.0) / num_updates
@@ -385,15 +402,15 @@ for update in range(starting_update, num_updates+1):
         real_action = torch.cat([
             torch.stack(
                 [torch.arange(0, mapsize, device=device) for i in range(envs.num_envs)
-        ]).unsqueeze(2), action], 2)
-        
+                 ]).unsqueeze(2), action], 2)
+
         # at this point, the `real_action` has shape (num_envs, map_height*map_width, 8)
-        # so as to predict an action for each cell in the map; this obviously include a 
-        # lot of invalid actions at cells for which no source units exist, so the rest of 
+        # so as to predict an action for each cell in the map; this obviously include a
+        # lot of invalid actions at cells for which no source units exist, so the rest of
         # the code removes these invalid actions to speed things up
         real_action = real_action.cpu().numpy()
-        valid_actions = real_action[invalid_action_masks[step][:,:,0].bool().cpu().numpy()]
-        valid_actions_counts = invalid_action_masks[step][:,:,0].sum(1).long().cpu().numpy()
+        valid_actions = real_action[invalid_action_masks[step][:, :, 0].bool().cpu().numpy()]
+        valid_actions_counts = invalid_action_masks[step][:, :, 0].sum(1).long().cpu().numpy()
         java_valid_actions = []
         valid_action_idx = 0
         for env_idx, valid_action_count in enumerate(valid_actions_counts):
@@ -403,7 +420,7 @@ for update in range(starting_update, num_updates+1):
                 valid_action_idx += 1
             java_valid_actions += [JArray(JArray(JInt))(java_valid_action)]
         java_valid_actions = JArray(JArray(JArray(JInt)))(java_valid_actions)
-        
+
         try:
             next_obs, rs, ds, infos = envs.step(java_valid_actions)
             next_obs = torch.Tensor(next_obs).to(device)
@@ -431,8 +448,8 @@ for update in range(starting_update, num_updates+1):
                     nextnonterminal = 1.0 - next_done
                     nextvalues = last_value
                 else:
-                    nextnonterminal = 1.0 - dones[t+1]
-                    nextvalues = values[t+1]
+                    nextnonterminal = 1.0 - dones[t + 1]
+                    nextvalues = values[t + 1]
                 delta = rewards[t] + args.gamma * nextvalues * nextnonterminal - values[t]
                 advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * nextnonterminal * lastgaelam
             returns = advantages + values
@@ -443,22 +460,22 @@ for update in range(starting_update, num_updates+1):
                     nextnonterminal = 1.0 - next_done
                     next_return = last_value
                 else:
-                    nextnonterminal = 1.0 - dones[t+1]
-                    next_return = returns[t+1]
+                    nextnonterminal = 1.0 - dones[t + 1]
+                    next_return = returns[t + 1]
                 returns[t] = rewards[t] + args.gamma * nextnonterminal * next_return
             advantages = returns - values
 
     # flatten the batch
-    b_obs = obs.reshape((-1,)+envs.observation_space.shape)
+    b_obs = obs.reshape((-1,) + envs.observation_space.shape)
     b_logprobs = logprobs.reshape(-1)
-    b_actions = actions.reshape((-1,)+action_space_shape)
+    b_actions = actions.reshape((-1,) + action_space_shape)
     b_advantages = advantages.reshape(-1)
     b_returns = returns.reshape(-1)
     b_values = values.reshape(-1)
-    b_invalid_action_masks = invalid_action_masks.reshape((-1,)+invalid_action_shape)
+    b_invalid_action_masks = invalid_action_masks.reshape((-1,) + invalid_action_shape)
 
     # Optimizaing the policy and value network
-    inds = np.arange(args.batch_size,)
+    inds = np.arange(args.batch_size, )
     for i_epoch_pi in range(args.update_epochs):
         np.random.shuffle(inds)
         for start in range(0, args.batch_size, args.minibatch_size):
@@ -480,7 +497,7 @@ for update in range(starting_update, num_updates+1):
 
             # Policy loss
             pg_loss1 = -mb_advantages * ratio
-            pg_loss2 = -mb_advantages * torch.clamp(ratio, 1-args.clip_coef, 1+args.clip_coef)
+            pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef, 1 + args.clip_coef)
             pg_loss = torch.max(pg_loss1, pg_loss2).mean()
             entropy_loss = entropy.mean()
 
@@ -488,12 +505,13 @@ for update in range(starting_update, num_updates+1):
             new_values = agent.get_value(b_obs[minibatch_ind]).view(-1)
             if args.clip_vloss:
                 v_loss_unclipped = ((new_values - b_returns[minibatch_ind]) ** 2)
-                v_clipped = b_values[minibatch_ind] + torch.clamp(new_values - b_values[minibatch_ind], -args.clip_coef, args.clip_coef)
-                v_loss_clipped = (v_clipped - b_returns[minibatch_ind])**2
+                v_clipped = b_values[minibatch_ind] + torch.clamp(new_values - b_values[minibatch_ind], -args.clip_coef,
+                                                                  args.clip_coef)
+                v_loss_clipped = (v_clipped - b_returns[minibatch_ind]) ** 2
                 v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
                 v_loss = 0.5 * v_loss_max.mean()
             else:
-                v_loss = 0.5 *((new_values - b_returns[minibatch_ind]) ** 2)
+                v_loss = 0.5 * ((new_values - b_returns[minibatch_ind]) ** 2)
 
             loss = pg_loss - args.ent_coef * entropy_loss + v_loss * args.vf_coef
 
