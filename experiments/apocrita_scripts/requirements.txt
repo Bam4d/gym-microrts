@@ -1,4 +1,4 @@
-gym
+gym==0.17.3
 dacite
 jPype1
 Pillow

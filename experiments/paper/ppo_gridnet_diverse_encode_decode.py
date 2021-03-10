@@ -243,35 +243,37 @@ class Encoder(nn.Module):
     def __init__(self, input_channels):
         super().__init__()
         self._encoder = nn.Sequential(
-            nn.Conv2d(input_channels, 32, kernel_size=3, padding=1),
+            Transpose((0, 3, 1, 2)),
+            layer_init(nn.Conv2d(input_channels, 32, kernel_size=3, padding=1)),
             nn.MaxPool2d(3, stride=2, padding=1),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            layer_init(nn.Conv2d(32, 64, kernel_size=3, padding=1)),
             nn.MaxPool2d(3, stride=2, padding=1),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            layer_init(nn.Conv2d(64, 128, kernel_size=3, padding=1)),
             nn.MaxPool2d(3, stride=2, padding=1),
             nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            layer_init(nn.Conv2d(128, 256, kernel_size=3, padding=1)),
             nn.MaxPool2d(3, stride=2, padding=1),
         )
 
     def forward(self, x):
         return self._encoder(x)
 
+
 class Decoder(nn.Module):
     def __init__(self, output_channels):
         super().__init__()
 
         self.deconv = nn.Sequential(
-            nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1, output_padding=1),
+            layer_init(nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1, output_padding=1)),
             nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),
+            layer_init(nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1)),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
+            layer_init(nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1)),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, output_channels, 3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
+            layer_init(nn.ConvTranspose2d(32, output_channels, 3, stride=2, padding=1, output_padding=1)),
+            Transpose((0, 2, 3, 1)),
         )
 
     def forward(self, x):
@@ -292,17 +294,15 @@ class Agent(nn.Module):
             nn.Flatten(),
             layer_init(nn.Linear(256, 128), std=1),
             nn.ReLU(),
-            layer_init(nn.Linear(128, 64), std=1),
-            nn.ReLU(),
-            layer_init(nn.Linear(64, 1), std=1),
+            layer_init(nn.Linear(128, 1), std=1),
         )
 
     def forward(self, x):
-        return self.encoder(x.permute((0, 3, 1, 2)))  # "bhwc" -> "bchw"
+        return self.encoder(x)  # "bhwc" -> "bchw"
 
     def get_action(self, x, action=None, invalid_action_masks=None, envs=None):
         logits = self.actor(self.forward(x))
-        grid_logits = logits.view(-1, envs.action_space.nvec[1:].sum())
+        grid_logits = logits.reshape(-1, envs.action_space.nvec[1:].sum())
         split_logits = torch.split(grid_logits, envs.action_space.nvec[1:].tolist(), dim=1)
 
         if action is None:

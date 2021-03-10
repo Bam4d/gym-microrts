@@ -310,6 +310,7 @@ class Agent(nn.Module):
 
         deconv_seqs.reverse()
         deconv_seqs += [
+            Transpose((0, 2, 3, 1)),
             nn.Flatten()
         ]
 
